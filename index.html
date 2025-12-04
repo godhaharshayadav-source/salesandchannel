@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViewSonic Sales Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --brand-red: #b91d2d;
+            --brand-red-hover: #d92539;
+            --border-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            height: fit-content;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 20px;
+        }
+
+        .logo-area {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-red { color: var(--brand-red); }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(185, 29, 45, 0.1);
+            color: var(--brand-red);
+        }
+
+        .nav-item.active {
+            background-color: var(--brand-red);
+            color: white;
+        }
+
+        .assumptions-box {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .assumption-item {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .assumption-item span:last-child {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* MAIN CONTENT AREA */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* VIEW MANAGEMENT */
+        .view-section {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view-section.active-view {
+            display: flex; /* Show active */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HEADER */
+        .header-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 { margin: 0; font-size: 24px; }
+        .header-title p { margin: 5px 0 0; color: var(--text-muted); font-size: 14px; }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .kpi-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-size: 28px; font-weight: 700; color: #fff; }
+        .kpi-sub { font-size: 12px; color: var(--brand-red); margin-top: 5px; font-weight: 600; }
+
+        /* ANALYTICS GRID */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+
+        .data-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h3 { margin: 0; font-size: 18px; }
+        .badge { background: #333; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
+
+        /* TABLE STYLES */
+        .input-table, .scorecard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .input-table th, .scorecard-table th {
+            text-align: left;
+            padding: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .input-table td, .scorecard-table td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            vertical-align: middle;
+        }
+
+        .input-table input {
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .input-table input:focus {
+            border-color: var(--brand-red);
+        }
+
+        .unit-badge {
+            background-color: rgba(185, 29, 45, 0.1);
+            color: var(--brand-red);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* STRATEGY & SEGMENT GRIDS */
+        .strategy-grid, .segment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .strategy-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #151515;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .strategy-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--brand-red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sector-tile {
+            background: #151515;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #333;
+        }
+        
+        .sector-tile.active-sector {
+            border-left-color: var(--brand-red);
+        }
+
+        .sector-tile h4 { margin: 0 0 5px 0; color: #fff; }
+        .sector-tile p { margin: 0; font-size: 13px; color: #aaa; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .analytics-grid, .strategy-grid, .segment-grid { grid-template-columns: 1fr; }
+            .kpi-row { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-area">
+            <i class="fa-solid fa-chart-pie logo-red"></i> ViewSonic
+        </div>
+        <div class="nav-item active" onclick="switchView('view-dashboard', this)">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchView('view-segments', this)">
+            <i class="fa-solid fa-filter"></i> Market Segments
+        </div>
+        <div class="nav-item" onclick="switchView('view-partners', this)">
+            <i class="fa-solid fa-network-wired"></i> Channel Partners
+        </div>
+        <div class="nav-item" onclick="window.print()">
+            <i class="fa-solid fa-file-export"></i> Print / PDF
+        </div>
+
+        <div class="assumptions-box">
+            <h4 style="color: #fff; margin-bottom: 15px;">Model Assumptions</h4>
+            <div class="assumption-item">
+                <span>ASP (Price)</span>
+                <span>10,000 AED</span>
+            </div>
+            <div class="assumption-item">
+                <span>ViewSonic Share</span>
+                <span>28%</span>
+            </div>
+            <div class="assumption-item">
+                <span>Geography</span>
+                <span>DXB + AUH</span>
+            </div>
+            <div class="assumption-item">
+                <span>Project Status</span>
+                <span>>80% Ready</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-content">
+
+        <!-- VIEW 1: DASHBOARD (HOME) -->
+        <div id="view-dashboard" class="view-section active-view">
+            <!-- Header -->
+            <div class="header-card">
+                <div class="header-title">
+                    <h1>Market Size Dashboard</h1>
+                    <p>SBR 1 Assignment • Overview & Calculator</p>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-label">TAM (Total Market)</div>
+                    <div class="kpi-value" id="disp-tam-val">0 AED</div>
+                    <div class="kpi-sub" id="disp-tam-units">0 Units</div>
+                </div>
+                <div class="kpi-card" style="border-color: var(--brand-red);">
+                    <div class="kpi-label">SAM (Serviceable)</div>
+                    <div class="kpi-value" id="disp-sam-val" style="color: var(--brand-red);">0 AED</div>
+                    <div class="kpi-sub" id="disp-sam-units">0 Units</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">SOM (Obtainable)</div>
+                    <div class="kpi-value" id="disp-som-val">0 AED</div>
+                    <div class="kpi-sub" id="disp-som-units">Target: 28% Share</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg. Deal Size</div>
+                    <div class="kpi-value">40k AED</div>
+                    <div class="kpi-sub">Based on ~4 units/deal</div>
+                </div>
+            </div>
+
+            <!-- Analytics Grid -->
+            <div class="analytics-grid">
+                <!-- Left: Input Table -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-pen-to-square" style="color: var(--brand-red); margin-right: 10px;"></i> Project Data Input</h3>
+                        <div class="badge">Live Calculation</div>
+                    </div>
+                    <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Enter MEED project counts. SAM = Dubai/Abu Dhabi + >80% completion.</p>
+                    <table class="input-table">
+                        <thead>
+                            <tr>
+                                <th>Sector</th>
+                                <th>Units/Proj</th>
+                                <th>TAM Count</th>
+                                <th>SAM Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="input-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Charts -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3>Market Visualization</h3>
+                    </div>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 14px;">Distribution Strategy</h4>
+                        <div style="display: flex; gap: 10px; font-size: 12px; color: #aaa;">
+                            <div style="flex: 1; background: #111; padding: 10px; border-radius: 6px;">
+                                <strong style="color: #fff; display: block; margin-bottom: 5px;">Exclusive</strong>
+                                Govt & Enterprise
+                            </div>
+                            <div style="flex: 1; background: #111; padding: 10px; border-radius: 6px;">
+                                <strong style="color: #fff; display: block; margin-bottom: 5px;">Selective</strong>
+                                Mid-Market
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Share Chart -->
+            <div class="data-card">
+                <div class="card-header">
+                    <h3>Market Share Landscape</h3>
+                </div>
+                <div style="height: 200px; display: flex; justify-content: center;">
+                    <canvas id="shareChart"></canvas>
+                </div>
+                <div style="margin-top: 15px; text-align: center; font-size: 13px; color: #aaa;">
+                    ViewSonic aims to capture <strong>28% SOM</strong> by leveraging superior price-performance (10k AED ASP) against BenQ.
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: MARKET SEGMENTS -->
+        <div id="view-segments" class="view-section">
+            <div class="header-card">
+                <div class="header-title">
+                    <h1>Sector Analysis</h1>
+                    <p>Relevant Sectors & Exclusion Logic</p>
+                </div>
+            </div>
+
+            <div class="segment-grid">
+                <!-- Included Sectors -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Included Sectors</h3>
+                    </div>
+                    <div class="sector-tile active-sector">
+                        <h4>Education (10 Units/Project)</h4>
+                        <p>High density. Universities & Schools digitizing classrooms. Highest volume opportunity.</p>
+                    </div>
+                    <div class="sector-tile active-sector">
+                        <h4>Commercial (2 Units/Project)</h4>
+                        <p>Corporate HQs. 1 Main Boardroom + 1 Meeting Room. High value, prestige installs.</p>
+                    </div>
+                    <div class="sector-tile active-sector">
+                        <h4>Healthcare (5 Units/Project)</h4>
+                        <p>Admin wings, training centers, and CEO offices in hospitals.</p>
+                    </div>
+                    <div class="sector-tile active-sector">
+                        <h4>Hospitality (5 Units/Project)</h4>
+                        <p>Hotels upgrading conference facilities and banquet operation rooms.</p>
+                    </div>
+                </div>
+
+                <!-- Excluded & SAM Filter -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-filter" style="color: var(--brand-red); margin-right: 10px;"></i> Filtering Logic</h3>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: #aaa; font-size: 14px; margin-bottom: 10px;">Excluded Sectors</h4>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Retail (Shawarma Shops)</span>
+                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Residential (Villas)</span>
+                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Earthworks</span>
+                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Leisure</span>
+                        </div>
+                    </div>
+
+                    <div style="background: #151515; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h4 style="color: #fff; margin: 0 0 20px 0;">SAM Calculation Funnel</h4>
+                        
+                        <div style="background: #333; padding: 15px; margin-bottom: 5px; color: #aaa;">
+                            TAM: All UAE Projects (Commercial/Edu/Health)
+                        </div>
+                        <div style="display: flex; justify-content: center; margin: 5px 0;"><i class="fa-solid fa-arrow-down" style="color: var(--brand-red);"></i></div>
+                        
+                        <div style="background: #444; padding: 15px; margin-bottom: 5px; color: #ccc;">
+                            Filter 1: Geography (Dubai + Abu Dhabi only)
+                        </div>
+                        <div style="display: flex; justify-content: center; margin: 5px 0;"><i class="fa-solid fa-arrow-down" style="color: var(--brand-red);"></i></div>
+
+                        <div style="background: var(--brand-red); padding: 15px; color: #fff; font-weight: bold;">
+                            Filter 2: Completion > 80% (Ready for Procurement)
+                        </div>
+                        <div style="margin-top: 15px; font-size: 13px; color: #aaa;">This is our Serviceable Addressable Market (SAM)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: CHANNEL PARTNERS -->
+        <div id="view-partners" class="view-section">
+            <div class="header-card">
+                <div class="header-title">
+                    <h1>Channel Strategy</h1>
+                    <p>Distribution Models & Partner Scorecard</p>
+                </div>
+            </div>
+
+            <div class="strategy-grid">
+                <!-- Channel Mix -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3>Distribution Mix: Selective + Exclusive</h3>
+                    </div>
+                    <div class="strategy-item">
+                        <div class="strategy-icon"><i class="fa-solid fa-user-tie"></i></div>
+                        <div>
+                            <strong style="color: #fff;">Direct Selling</strong>
+                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">Top 50 Enterprise Accounts & Govt. High-touch relationship management required.</div>
+                        </div>
+                    </div>
+                    <div class="strategy-item">
+                        <div class="strategy-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div>
+                            <strong style="color: #fff;">Indirect Selling (Volume)</strong>
+                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">Tier-1 Distributors (Ingram/Redington) + Resellers. Covers SME & Mid-market.</div>
+                        </div>
+                    </div>
+                    <div class="strategy-item">
+                        <div class="strategy-icon"><i class="fa-solid fa-handshake-simple"></i></div>
+                        <div>
+                            <strong style="color: #fff;">Dual Selling (Hybrid)</strong>
+                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">ViewSonic supports on large tenders (Presales) but fulfillment goes through channel.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partner Scorecard -->
+                <div class="data-card">
+                    <div class="card-header">
+                        <h3>Partner Selection Scorecard</h3>
+                    </div>
+                    <table class="scorecard-table">
+                        <thead>
+                            <tr>
+                                <th>Criteria</th>
+                                <th>Weight</th>
+                                <th>KPI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong style="color: #fff;">Technical Expertise</strong></td>
+                                <td>30%</td>
+                                <td>AV/UC Certifications</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #fff;">Market Access</strong></td>
+                                <td>25%</td>
+                                <td>Govt/Edu Vendor Lists</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #fff;">Financial Health</strong></td>
+                                <td>20%</td>
+                                <td>Credit & Stocking Ability</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #fff;">Service Level</strong></td>
+                                <td>15%</td>
+                                <td>Install speed < 48hrs</td>
+                            </tr>
+                            <tr>
+                                <td><strong style="color: #fff;">Loyalty</strong></td>
+                                <td>10%</td>
+                                <td>Exclusivity vs BenQ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- NAVIGATION LOGIC ---
+    function switchView(viewId, navElement) {
+        // 1. Hide all views
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active-view');
+        });
+        
+        // 2. Show target view
+        document.getElementById(viewId).classList.add('active-view');
+
+        // 3. Update Nav UI
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        navElement.classList.add('active');
+    }
+
+    // --- CONFIGURATION ---
+    const ASP = 10000;
+    const SOM_SHARE = 0.28;
+
+    const sectors = [
+        { name: "Commercial", units: 2, defaultTam: 45, defaultSam: 12 },
+        { name: "Hospitality", units: 5, defaultTam: 32, defaultSam: 15 },
+        { name: "Healthcare", units: 5, defaultTam: 12, defaultSam: 5 },
+        { name: "Education", units: 10, defaultTam: 18, defaultSam: 11 },
+        { name: "Mixed-Use", units: 3, defaultTam: 55, defaultSam: 13 }
+    ];
+
+    // --- DOM ELEMENTS ---
+    const tbody = document.getElementById('input-body');
+    const dispTamVal = document.getElementById('disp-tam-val');
+    const dispTamUnits = document.getElementById('disp-tam-units');
+    const dispSamVal = document.getElementById('disp-sam-val');
+    const dispSamUnits = document.getElementById('disp-sam-units');
+    const dispSomVal = document.getElementById('disp-som-val');
+    const dispSomUnits = document.getElementById('disp-som-units');
+
+    // --- INITIALIZE TABLE ---
+    function renderTable() {
+        sectors.forEach((sector, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span style="font-weight: 600; color: #fff;">${sector.name}</span></td>
+                <td><span class="unit-badge">${sector.units} Units</span></td>
+                <td>
+                    <input type="number" id="tam-input-${index}" value="${sector.defaultTam}" oninput="recalc()">
+                </td>
+                <td>
+                    <input type="number" id="sam-input-${index}" value="${sector.defaultSam}" oninput="recalc()" style="border-color: #555; background: #222;">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- CALCULATION LOGIC ---
+    function recalc() {
+        let totalTamUnits = 0;
+        let totalSamUnits = 0;
+
+        sectors.forEach((sector, index) => {
+            const tamCount = parseInt(document.getElementById(`tam-input-${index}`).value) || 0;
+            const samCount = parseInt(document.getElementById(`sam-input-${index}`).value) || 0;
+
+            totalTamUnits += tamCount * sector.units;
+            totalSamUnits += samCount * sector.units;
+        });
+
+        const tamValue = totalTamUnits * ASP;
+        const samValue = totalSamUnits * ASP;
+        
+        const somUnits = Math.round(totalSamUnits * SOM_SHARE);
+        const somValue = somUnits * ASP;
+
+        // Update Text
+        dispTamVal.innerText = formatMoney(tamValue);
+        dispTamUnits.innerText = totalTamUnits.toLocaleString() + " Units";
+
+        dispSamVal.innerText = formatMoney(samValue);
+        dispSamUnits.innerText = totalSamUnits.toLocaleString() + " Units";
+
+        dispSomVal.innerText = formatMoney(somValue);
+        dispSomUnits.innerText = somUnits.toLocaleString() + " Units (28%)";
+
+        // Update Chart
+        updateCharts(tamValue, samValue, somValue);
+    }
+
+    function formatMoney(amount) {
+        if (amount >= 1000000) {
+            return (amount / 1000000).toFixed(2) + "M AED";
+        }
+        return (amount / 1000).toFixed(0) + "k AED";
+    }
+
+    // --- CHARTS ---
+    let marketChartInstance = null;
+    let shareChartInstance = null;
+
+    function initCharts() {
+        // Bar Chart
+        const ctx = document.getElementById('marketChart').getContext('2d');
+        marketChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['TAM (Total)', 'SAM (Serviceable)', 'SOM (Obtainable)'],
+                datasets: [{
+                    label: 'Market Value (AED)',
+                    data: [0, 0, 0],
+                    backgroundColor: ['#333', '#b91d2d', '#e0e0e0'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#333' },
+                        ticks: { color: '#aaa' } 
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#fff', font: { size: 12 } } 
+                    }
+                }
+            }
+        });
+
+        // Pie Chart
+        const ctxPie = document.getElementById('shareChart').getContext('2d');
+        shareChartInstance = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['ViewSonic (28%)', 'BenQ (35%)', 'Spektron (15%)', 'Others (22%)'],
+                datasets: [{
+                    data: [28, 35, 15, 22],
+                    backgroundColor: ['#b91d2d', '#333', '#555', '#777'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'right', labels: { color: '#aaa', boxWidth: 12 } } 
+                }
+            }
+        });
+    }
+
+    function updateCharts(tam, sam, som) {
+        if (marketChartInstance) {
+            marketChartInstance.data.datasets[0].data = [tam, sam, som];
+            marketChartInstance.update();
+        }
+    }
+
+    // --- RUN ---
+    renderTable();
+    initCharts();
+    recalc(); // Initial calc
+
+</script>
+
+</body>
+</html>
