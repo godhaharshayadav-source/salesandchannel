@@ -3,577 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViewSonic Sales Dashboard</title>
+    <title>ViewSonic Strategic Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
+            /* COLOR PALETTE: Bright Beige/Red/Cream */
+            --bg-main: #f8f5f2;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #2d2d2d;
+            --text-muted: #666666;
+            
             --brand-red: #b91d2d;
-            --brand-red-hover: #d92539;
-            --border-color: #333;
+            --brand-red-light: #fff0f2;
+            
+            --accent-edu: #2e7d32;
+            --accent-corp: #e65100;
+            --accent-hosp: #1565c0;
+            --accent-govt: #6a1b9a;
+            --accent-mixed: #c2185b;
+            
+            --border-color: #e0e0e0;
+            --shadow-soft: 0 4px 20px rgba(0,0,0,0.03);
         }
 
-        * {
-            box-sizing: border-box;
-            outline: none;
-        }
+        * { box-sizing: border-box; outline: none; }
 
         body {
-            font-family: 'Urbanist', sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
-            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .dashboard-container {
-            width: 100%;
-            max-width: 1400px;
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 20px;
+        /* --- LANDING PAGE (Slide -1) --- */
+        #landing-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #fdfbf7 100%);
+            z-index: 2000; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; text-align: center;
+            padding: 40px;
+        }
+        
+        .landing-title { 
+            font-size: 48px; font-weight: 800; color: #333; margin-bottom: 10px; letter-spacing: -1px;
+        }
+        .landing-subtitle {
+            font-size: 24px; color: var(--brand-red); font-weight: 600; margin-bottom: 40px;
+        }
+        .landing-details {
+            background: #fff; padding: 30px; border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08); border: 1px solid #eee;
+            margin-bottom: 40px; max-width: 600px;
+        }
+        .landing-btn {
+            background: var(--brand-red); color: white; border: none;
+            padding: 15px 40px; font-size: 18px; font-weight: 700; border-radius: 50px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 20px rgba(185, 29, 45, 0.3);
+        }
+        .landing-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(185, 29, 45, 0.4); }
+        
+        .team-names {
+            position: absolute; bottom: 30px; right: 40px; text-align: right;
+            font-size: 12px; color: #888; line-height: 1.6;
         }
 
-        /* SIDEBAR */
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-wrapper {
+            display: flex; width: 100%; display: none; /* Hidden initially */
+        }
+
         .sidebar {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            height: fit-content;
-            border: 1px solid var(--border-color);
-            position: sticky;
-            top: 20px;
+            width: 260px; background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 30px 20px; position: fixed; height: 100vh;
+            display: flex; flex-direction: column; z-index: 100;
         }
 
         .logo-area {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 22px; font-weight: 800; color: var(--brand-red);
+            margin-bottom: 40px; display: flex; align-items: center; gap: 10px;
         }
-        
-        .logo-red { color: var(--brand-red); }
 
         .nav-item {
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            color: var(--text-muted);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            padding: 12px 16px; margin-bottom: 6px; border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; color: var(--text-muted);
+            font-weight: 600; display: flex; align-items: center; gap: 12px; font-size: 14px;
         }
-
-        .nav-item:hover {
-            background-color: rgba(185, 29, 45, 0.1);
-            color: var(--brand-red);
-        }
-
-        .nav-item.active {
-            background-color: var(--brand-red);
-            color: white;
-        }
-
-        .assumptions-box {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .assumption-item {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .assumption-item span:last-child {
-            color: #fff;
-            font-weight: bold;
-        }
-
-        /* MAIN CONTENT AREA */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* VIEW MANAGEMENT */
-        .view-section {
-            display: none; /* Hidden by default */
-            flex-direction: column;
-            gap: 20px;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .view-section.active-view {
-            display: flex; /* Show active */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* HEADER */
-        .header-card {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header-title h1 { margin: 0; font-size: 24px; }
-        .header-title p { margin: 5px 0 0; color: var(--text-muted); font-size: 14px; }
-
-        .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .kpi-card {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .kpi-label { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
-        .kpi-value { font-size: 28px; font-weight: 700; color: #fff; }
-        .kpi-sub { font-size: 12px; color: var(--brand-red); margin-top: 5px; font-weight: 600; }
-
-        /* ANALYTICS GRID */
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 20px;
-        }
-
-        .data-card {
-            background-color: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .card-header h3 { margin: 0; font-size: 18px; }
-        .badge { background: #333; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
-
-        /* TABLE STYLES */
-        .input-table, .scorecard-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .input-table th, .scorecard-table th {
-            text-align: left;
-            padding: 12px;
-            font-size: 13px;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .input-table td, .scorecard-table td {
-            padding: 12px;
-            border-bottom: 1px solid #333;
-            vertical-align: middle;
-        }
-
-        .input-table input {
-            background: #111;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 8px;
-            border-radius: 6px;
-            width: 80px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .input-table input:focus {
-            border-color: var(--brand-red);
-        }
-
-        .unit-badge {
-            background-color: rgba(185, 29, 45, 0.1);
-            color: var(--brand-red);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        /* STRATEGY & SEGMENT GRIDS */
-        .strategy-grid, .segment-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .strategy-item {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            background: #151515;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .strategy-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--brand-red);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .sector-tile {
-            background: #151515;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #333;
-        }
+        .nav-item:hover { background-color: var(--brand-red-light); color: var(--brand-red); }
+        .nav-item.active { background-color: var(--brand-red); color: white; box-shadow: 0 4px 10px rgba(185,29,45,0.2); }
         
-        .sector-tile.active-sector {
-            border-left-color: var(--brand-red);
+        .step-badge {
+            background: rgba(0,0,0,0.05); color: #666; font-size: 10px; font-weight: 700; 
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+        }
+        .nav-item.active .step-badge { background: rgba(255,255,255,0.2); color: white; }
+
+        .main-content {
+            margin-left: 260px; flex: 1; padding: 40px; max-width: 1400px;
         }
 
-        .sector-tile h4 { margin: 0 0 5px 0; color: #fff; }
-        .sector-tile p { margin: 0; font-size: 13px; color: #aaa; }
+        .view-section { display: none; animation: fadeIn 0.5s ease; }
+        .view-section.active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .dashboard-container { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .analytics-grid, .strategy-grid, .segment-grid { grid-template-columns: 1fr; }
-            .kpi-row { grid-template-columns: 1fr 1fr; }
+        /* --- COMPONENTS --- */
+        .page-header { margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .page-title { font-size: 28px; font-weight: 800; color: #222; margin: 0; }
+        .page-sub { font-size: 15px; color: var(--text-muted); margin-top: 5px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 25px; box-shadow: var(--shadow-soft);
         }
+        .card-header { margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+        .card-title { margin: 0; font-size: 16px; font-weight: 700; color: #333; text-transform: uppercase; }
+
+        /* Slide 1 Specifics */
+        .sector-list { display: flex; flex-direction: column; gap: 12px; }
+        .sector-item {
+            display: flex; align-items: center; gap: 15px; padding: 12px;
+            background: #fafafa; border: 1px solid #eee; border-radius: 10px;
+        }
+        .sector-icon {
+            width: 40px; height: 40px; border-radius: 8px; display: flex;
+            align-items: center; justify-content: center; font-size: 18px; color: white; flex-shrink: 0;
+        }
+        .growth-desc { font-size: 12px; color: #666; margin-top: 2px; }
+
+        /* Tables */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 14px; }
+        .data-table th { text-align: left; padding: 10px 15px; color: #888; font-size: 11px; text-transform: uppercase; }
+        .data-table td { padding: 12px 15px; background: #fcfcfc; border: 1px solid #eee; }
+        .metric-val { font-weight: 700; color: var(--brand-red); font-family: monospace; font-size: 15px; }
+        .total-row td { background: var(--brand-red-light) !important; font-weight: 800; color: var(--brand-red); }
+
+        /* Strategy Cards */
+        .strategy-card { padding: 20px; border: 1px solid #eee; border-radius: 12px; height: 100%; }
+        .strategy-card.rejected { background: #fff5f5; border-top: 4px solid #d32f2f; }
+        .strategy-card.selected { background: #f0fdf4; border-top: 4px solid #2e7d32; }
+        
+        /* Flow Map */
+        .flow-row {
+            display: grid; grid-template-columns: 80px 1fr 1fr 1fr; gap: 15px; align-items: center;
+            background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 12px;
+            border-left: 5px solid #ccc; margin-bottom: 15px;
+        }
+        .flow-step { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+        .flow-label { font-size: 10px; color: #999; text-transform: uppercase; font-weight: 700; }
+        
+        .partner-tag {
+            display: inline-block; background: #f5f5f5; border: 1px solid #ddd;
+            padding: 2px 6px; font-size: 11px; border-radius: 4px; color: #555; margin-top: 4px;
+        }
+
     </style>
 </head>
 <body>
 
-<div class="dashboard-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo-area">
-            <i class="fa-solid fa-chart-pie logo-red"></i> ViewSonic
-        </div>
-        <div class="nav-item active" onclick="switchView('view-dashboard', this)">
-            <i class="fa-solid fa-gauge-high"></i> Dashboard
-        </div>
-        <div class="nav-item" onclick="switchView('view-segments', this)">
-            <i class="fa-solid fa-filter"></i> Market Segments
-        </div>
-        <div class="nav-item" onclick="switchView('view-partners', this)">
-            <i class="fa-solid fa-network-wired"></i> Channel Partners
-        </div>
-        <div class="nav-item" onclick="window.print()">
-            <i class="fa-solid fa-file-export"></i> Print / PDF
-        </div>
-
-        <div class="assumptions-box">
-            <h4 style="color: #fff; margin-bottom: 15px;">Model Assumptions</h4>
-            <div class="assumption-item">
-                <span>ASP (Price)</span>
-                <span>10,000 AED</span>
-            </div>
-            <div class="assumption-item">
-                <span>ViewSonic Share</span>
-                <span>28%</span>
-            </div>
-            <div class="assumption-item">
-                <span>Geography</span>
-                <span>DXB + AUH</span>
-            </div>
-            <div class="assumption-item">
-                <span>Project Status</span>
-                <span>>80% Ready</span>
-            </div>
-        </div>
+<!-- LANDING PAGE -->
+<div id="landing-page">
+    <h1 class="landing-title">SBR 1 : Market Size & Sales Distribution</h1>
+    <div class="landing-subtitle">Strategic Analysis Dashboard</div>
+    
+    <div class="landing-details">
+        <p style="margin-bottom: 10px;"><strong>Company:</strong> ViewSonic Middle East</p>
+        <p style="margin-bottom: 10px;"><strong>Product:</strong> IFP7550 75" Interactive Display</p>
+        <p style="margin: 0;"><strong>Target Market:</strong> UAE Commercial Enterprise Segment</p>
     </div>
 
-    <!-- Main Content Wrapper -->
+    <button class="landing-btn" onclick="enterDashboard()">Begin Presentation <i class="fa-solid fa-arrow-right"></i></button>
+
+    <div class="team-names">
+        <strong>By Team 8</strong><br>
+        Dhruv sanganeria (MM24MM061)<br>
+        Harsha Vardhan Yadav Godha (MJ25GL055)<br>
+        Mihir Dudeja (MJ25MM046)
+    </div>
+</div>
+
+<!-- DASHBOARD UI -->
+<div class="dashboard-wrapper" id="dashboard-ui">
+    <div class="sidebar">
+        <div class="logo-area"><i class="fa-solid fa-chart-simple"></i> ViewSonic</div>
+        
+        <div class="nav-item active" onclick="switchView('slide0', this)"><span class="step-badge">0</span> Intro</div>
+        <div class="nav-item" onclick="switchView('slide1', this)"><span class="step-badge">1</span> Sector Logic</div>
+        <div class="nav-item" onclick="switchView('slide2', this)"><span class="step-badge">2</span> TAM Analysis</div>
+        <div class="nav-item" onclick="switchView('slide3', this)"><span class="step-badge">3</span> SAM Filters</div>
+        <div class="nav-item" onclick="switchView('slide4', this)"><span class="step-badge">4</span> SOM Target</div>
+        <div class="nav-item" onclick="switchView('slide5', this)"><span class="step-badge">5</span> Strategy</div>
+        <div class="nav-item" onclick="switchView('slide6', this)"><span class="step-badge">6</span> Partner Map</div>
+        <div class="nav-item" onclick="switchView('slide7', this)"><span class="step-badge">7</span> Assumptions</div>
+    </div>
+
     <div class="main-content">
-
-        <!-- VIEW 1: DASHBOARD (HOME) -->
-        <div id="view-dashboard" class="view-section active-view">
-            <!-- Header -->
-            <div class="header-card">
-                <div class="header-title">
-                    <h1>Market Size Dashboard</h1>
-                    <p>SBR 1 Assignment • Overview & Calculator</p>
+        
+        <!-- Slide 0: Intro Context -->
+        <div id="slide0" class="view-section active-view">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Company & Product Overview</h1>
+                    <p class="page-sub">Setting the stage for our market strategy.</p>
                 </div>
             </div>
-
-            <!-- KPI Cards -->
-            <div class="kpi-row">
-                <div class="kpi-card">
-                    <div class="kpi-label">TAM (Total Market)</div>
-                    <div class="kpi-value" id="disp-tam-val">0 AED</div>
-                    <div class="kpi-sub" id="disp-tam-units">0 Units</div>
-                </div>
-                <div class="kpi-card" style="border-color: var(--brand-red);">
-                    <div class="kpi-label">SAM (Serviceable)</div>
-                    <div class="kpi-value" id="disp-sam-val" style="color: var(--brand-red);">0 AED</div>
-                    <div class="kpi-sub" id="disp-sam-units">0 Units</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">SOM (Obtainable)</div>
-                    <div class="kpi-value" id="disp-som-val">0 AED</div>
-                    <div class="kpi-sub" id="disp-som-units">Target: 28% Share</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Avg. Deal Size</div>
-                    <div class="kpi-value">40k AED</div>
-                    <div class="kpi-sub">Based on ~4 units/deal</div>
-                </div>
-            </div>
-
-            <!-- Analytics Grid -->
-            <div class="analytics-grid">
-                <!-- Left: Input Table -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-pen-to-square" style="color: var(--brand-red); margin-right: 10px;"></i> Project Data Input</h3>
-                        <div class="badge">Live Calculation</div>
+            <div class="card">
+                <div class="grid-2">
+                    <div>
+                        <h3 style="color: var(--brand-red);">ViewSonic Middle East</h3>
+                        <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                            A global leader in visual solutions. In the UAE, we hold a <strong>28% Market Share</strong>, positioning us as the aggressive Challenger to BenQ (35%). Our focus is high-quality, interactive collaboration tools.
+                        </p>
                     </div>
-                    <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">Enter MEED project counts. SAM = Dubai/Abu Dhabi + >80% completion.</p>
-                    <table class="input-table">
-                        <thead>
-                            <tr>
-                                <th>Sector</th>
-                                <th>Units/Proj</th>
-                                <th>TAM Count</th>
-                                <th>SAM Count</th>
-                            </tr>
-                        </thead>
-                        <tbody id="input-body"></tbody>
-                    </table>
-                </div>
-
-                <!-- Right: Charts -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3>Market Visualization</h3>
-                    </div>
-                    <div style="height: 250px; position: relative;">
-                        <canvas id="marketChart"></canvas>
-                    </div>
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
-                        <h4 style="margin: 0 0 10px 0; font-size: 14px;">Distribution Strategy</h4>
-                        <div style="display: flex; gap: 10px; font-size: 12px; color: #aaa;">
-                            <div style="flex: 1; background: #111; padding: 10px; border-radius: 6px;">
-                                <strong style="color: #fff; display: block; margin-bottom: 5px;">Exclusive</strong>
-                                Govt & Enterprise
-                            </div>
-                            <div style="flex: 1; background: #111; padding: 10px; border-radius: 6px;">
-                                <strong style="color: #fff; display: block; margin-bottom: 5px;">Selective</strong>
-                                Mid-Market
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Share Chart -->
-            <div class="data-card">
-                <div class="card-header">
-                    <h3>Market Share Landscape</h3>
-                </div>
-                <div style="height: 200px; display: flex; justify-content: center;">
-                    <canvas id="shareChart"></canvas>
-                </div>
-                <div style="margin-top: 15px; text-align: center; font-size: 13px; color: #aaa;">
-                    ViewSonic aims to capture <strong>28% SOM</strong> by leveraging superior price-performance (10k AED ASP) against BenQ.
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 2: MARKET SEGMENTS -->
-        <div id="view-segments" class="view-section">
-            <div class="header-card">
-                <div class="header-title">
-                    <h1>Sector Analysis</h1>
-                    <p>Relevant Sectors & Exclusion Logic</p>
-                </div>
-            </div>
-
-            <div class="segment-grid">
-                <!-- Included Sectors -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-check-circle" style="color: #4caf50; margin-right: 10px;"></i> Included Sectors</h3>
-                    </div>
-                    <div class="sector-tile active-sector">
-                        <h4>Education (10 Units/Project)</h4>
-                        <p>High density. Universities & Schools digitizing classrooms. Highest volume opportunity.</p>
-                    </div>
-                    <div class="sector-tile active-sector">
-                        <h4>Commercial (2 Units/Project)</h4>
-                        <p>Corporate HQs. 1 Main Boardroom + 1 Meeting Room. High value, prestige installs.</p>
-                    </div>
-                    <div class="sector-tile active-sector">
-                        <h4>Healthcare (5 Units/Project)</h4>
-                        <p>Admin wings, training centers, and CEO offices in hospitals.</p>
-                    </div>
-                    <div class="sector-tile active-sector">
-                        <h4>Hospitality (5 Units/Project)</h4>
-                        <p>Hotels upgrading conference facilities and banquet operation rooms.</p>
-                    </div>
-                </div>
-
-                <!-- Excluded & SAM Filter -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-filter" style="color: var(--brand-red); margin-right: 10px;"></i> Filtering Logic</h3>
-                    </div>
-                    
-                    <div style="margin-bottom: 30px;">
-                        <h4 style="color: #aaa; font-size: 14px; margin-bottom: 10px;">Excluded Sectors</h4>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Retail (Shawarma Shops)</span>
-                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Residential (Villas)</span>
-                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Earthworks</span>
-                            <span class="badge" style="background: #333; color: #888; text-decoration: line-through;">Leisure</span>
-                        </div>
-                    </div>
-
-                    <div style="background: #151515; padding: 20px; border-radius: 8px; text-align: center;">
-                        <h4 style="color: #fff; margin: 0 0 20px 0;">SAM Calculation Funnel</h4>
-                        
-                        <div style="background: #333; padding: 15px; margin-bottom: 5px; color: #aaa;">
-                            TAM: All UAE Projects (Commercial/Edu/Health)
-                        </div>
-                        <div style="display: flex; justify-content: center; margin: 5px 0;"><i class="fa-solid fa-arrow-down" style="color: var(--brand-red);"></i></div>
-                        
-                        <div style="background: #444; padding: 15px; margin-bottom: 5px; color: #ccc;">
-                            Filter 1: Geography (Dubai + Abu Dhabi only)
-                        </div>
-                        <div style="display: flex; justify-content: center; margin: 5px 0;"><i class="fa-solid fa-arrow-down" style="color: var(--brand-red);"></i></div>
-
-                        <div style="background: var(--brand-red); padding: 15px; color: #fff; font-weight: bold;">
-                            Filter 2: Completion > 80% (Ready for Procurement)
-                        </div>
-                        <div style="margin-top: 15px; font-size: 13px; color: #aaa;">This is our Serviceable Addressable Market (SAM)</div>
+                    <div>
+                        <h3 style="color: #333;">The Product: IFP7550</h3>
+                        <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                            75-inch Interactive Flat Panel.
+                            <br><strong>Use Case:</strong> Boardrooms, University Classrooms, Training Centers.
+                            <br><strong>Price:</strong> 9,000 - 11,000 AED (Premium B2B).
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 3: CHANNEL PARTNERS -->
-        <div id="view-partners" class="view-section">
-            <div class="header-card">
-                <div class="header-title">
-                    <h1>Channel Strategy</h1>
-                    <p>Distribution Models & Partner Scorecard</p>
+        <!-- Slide 1: Sector Logic -->
+        <div id="slide1" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Sector Selection Strategy</h1>
+                <p class="page-sub">Filtering for High-Value B2B Fit.</p>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title" style="color: var(--accent-edu);">Included Sectors</h3></div>
+                    <div class="sector-list">
+                        <div class="sector-item">
+                            <div class="sector-icon" style="background: var(--accent-edu);"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <div>
+                                <strong>Education</strong>
+                                <div class="growth-desc">Govt mandates for digital classrooms driving volume.</div>
+                            </div>
+                        </div>
+                        <div class="sector-item">
+                            <div class="sector-icon" style="background: var(--accent-corp);"><i class="fa-solid fa-building"></i></div>
+                            <div>
+                                <strong>Commercial</strong>
+                                <div class="growth-desc">Post-Expo HQ relocations driving premium boardroom demand.</div>
+                            </div>
+                        </div>
+                        <div class="sector-item">
+                            <div class="sector-icon" style="background: var(--accent-hosp);"><i class="fa-solid fa-hotel"></i></div>
+                            <div>
+                                <strong>Hospitality</strong>
+                                <div class="growth-desc">Business tourism rebound requiring conference tech.</div>
+                            </div>
+                        </div>
+                        <div class="sector-item">
+                            <div class="sector-icon" style="background: var(--accent-govt);"><i class="fa-solid fa-hospital"></i></div>
+                            <div>
+                                <strong>Healthcare</strong>
+                                <div class="growth-desc">Accreditation requirements for training facilities.</div>
+                            </div>
+                        </div>
+                        <div class="sector-item">
+                            <div class="sector-icon" style="background: var(--accent-mixed);"><i class="fa-solid fa-city"></i></div>
+                            <div>
+                                <strong>Mixed-Use</strong>
+                                <div class="growth-desc">Integrated office/retail towers.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title" style="color: #d32f2f;">Excluded Sectors</h3></div>
+                    <ul style="color: #666; font-size: 14px; line-height: 2;">
+                        <li><i class="fa-solid fa-xmark" style="color: #d32f2f;"></i> <strong>Retail (Small Shops):</strong> No use case for corporate boards.</li>
+                        <li><i class="fa-solid fa-xmark" style="color: #d32f2f;"></i> <strong>Residential (Villas):</strong> B2C segment, low margin.</li>
+                        <li><i class="fa-solid fa-xmark" style="color: #d32f2f;"></i> <strong>Infrastructure:</strong> Roads/Bridges do not need AV.</li>
+                    </ul>
+                    <div style="background: #fff5f5; padding: 15px; border-left: 4px solid #d32f2f; margin-top: 20px;">
+                        <strong style="color: #d32f2f;">Why?</strong> "Focusing on B2B verticals ensures our sales team targets high-probability, high-volume accounts only."
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="strategy-grid">
-                <!-- Channel Mix -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3>Distribution Mix: Selective + Exclusive</h3>
-                    </div>
-                    <div class="strategy-item">
-                        <div class="strategy-icon"><i class="fa-solid fa-user-tie"></i></div>
-                        <div>
-                            <strong style="color: #fff;">Direct Selling</strong>
-                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">Top 50 Enterprise Accounts & Govt. High-touch relationship management required.</div>
-                        </div>
-                    </div>
-                    <div class="strategy-item">
-                        <div class="strategy-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-                        <div>
-                            <strong style="color: #fff;">Indirect Selling (Volume)</strong>
-                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">Tier-1 Distributors (Ingram/Redington) + Resellers. Covers SME & Mid-market.</div>
-                        </div>
-                    </div>
-                    <div class="strategy-item">
-                        <div class="strategy-icon"><i class="fa-solid fa-handshake-simple"></i></div>
-                        <div>
-                            <strong style="color: #fff;">Dual Selling (Hybrid)</strong>
-                            <div style="font-size: 13px; color: #aaa; margin-top: 4px;">ViewSonic supports on large tenders (Presales) but fulfillment goes through channel.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Partner Scorecard -->
-                <div class="data-card">
-                    <div class="card-header">
-                        <h3>Partner Selection Scorecard</h3>
-                    </div>
-                    <table class="scorecard-table">
-                        <thead>
-                            <tr>
-                                <th>Criteria</th>
-                                <th>Weight</th>
-                                <th>KPI</th>
-                            </tr>
-                        </thead>
+        <!-- Slide 2: TAM -->
+        <div id="slide2" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">TAM Analysis</h1>
+                <p class="page-sub">Total Addressable Market (Dubai & Abu Dhabi) - <strong>Excluding Cancelled</strong>.</p>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <table class="data-table">
+                        <thead><tr><th>Sector</th><th>Proj.</th><th>Units</th><th>Price</th><th>Value</th></tr></thead>
                         <tbody>
-                            <tr>
-                                <td><strong style="color: #fff;">Technical Expertise</strong></td>
-                                <td>30%</td>
-                                <td>AV/UC Certifications</td>
-                            </tr>
-                            <tr>
-                                <td><strong style="color: #fff;">Market Access</strong></td>
-                                <td>25%</td>
-                                <td>Govt/Edu Vendor Lists</td>
-                            </tr>
-                            <tr>
-                                <td><strong style="color: #fff;">Financial Health</strong></td>
-                                <td>20%</td>
-                                <td>Credit & Stocking Ability</td>
-                            </tr>
-                            <tr>
-                                <td><strong style="color: #fff;">Service Level</strong></td>
-                                <td>15%</td>
-                                <td>Install speed < 48hrs</td>
-                            </tr>
-                            <tr>
-                                <td><strong style="color: #fff;">Loyalty</strong></td>
-                                <td>10%</td>
-                                <td>Exclusivity vs BenQ</td>
-                            </tr>
+                            <tr><td>Education</td><td>232</td><td>10</td><td>9k</td><td class="metric-val">20.88M</td></tr>
+                            <tr><td>Commercial</td><td>870</td><td>2</td><td>11k</td><td class="metric-val">19.14M</td></tr>
+                            <tr><td>Hospitality</td><td>465</td><td>5</td><td>10k</td><td class="metric-val">23.25M</td></tr>
+                            <tr><td>Healthcare</td><td>113</td><td>5</td><td>10.5k</td><td class="metric-val">5.93M</td></tr>
+                            <tr><td>Mixed-Use</td><td>739</td><td>3</td><td>10k</td><td class="metric-val">22.17M</td></tr>
+                            <tr class="total-row"><td colspan="4">TOTAL TAM:</td><td>91.37M AED</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="card"><canvas id="tamChart" height="250"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Slide 3: SAM -->
+        <div id="slide3" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">SAM Filtering</h1>
+                <p class="page-sub">Serviceable Market: <strong>Execution + On Hold</strong> (Aggressive Pipeline).</p>
+            </div>
+            <div class="grid-3">
+                <div class="card" style="text-align:center;"><strong>Geography</strong><br><span style="color:var(--brand-red);">DXB + AD</span></div>
+                <div class="card" style="text-align:center;"><strong>Status</strong><br><span style="color:var(--brand-red);">Execution + On Hold</span></div>
+                <div class="card" style="text-align:center;"><strong>Rationale</strong><br><span style="font-size:12px;">Capture upside of resumed projects.</span></div>
+            </div>
+            <div class="card" style="margin-top: 20px;">
+                <table class="data-table">
+                    <thead><tr><th>Sector</th><th>Active Proj.</th><th>Units</th><th>Price</th><th>SAM Value</th></tr></thead>
+                    <tbody>
+                        <!-- Data logic: Approx 64% of TAM projects fall into Execution/On-Hold category -->
+                        <tr><td>Education</td><td>148</td><td>10</td><td>9k</td><td class="metric-val">13.32M</td></tr>
+                        <tr><td>Commercial</td><td>557</td><td>2</td><td>11k</td><td class="metric-val">12.25M</td></tr>
+                        <tr><td>Hospitality</td><td>298</td><td>5</td><td>10k</td><td class="metric-val">14.90M</td></tr>
+                        <tr><td>Healthcare</td><td>72</td><td>5</td><td>10.5k</td><td class="metric-val">3.78M</td></tr>
+                        <tr><td>Mixed-Use</td><td>473</td><td>3</td><td>10k</td><td class="metric-val">14.19M</td></tr>
+                        <tr class="total-row"><td colspan="4">TOTAL SAM:</td><td>58.44M AED</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Slide 4: SOM -->
+        <div id="slide4" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">SOM Target</h1>
+                <p class="page-sub">Revenue Goal based on 28% Market Share.</p>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div style="font-size: 14px; color: #666; margin-bottom: 10px;">Total SAM Pipeline</div>
+                    <div style="font-size: 24px; font-weight: 700;">58,440,000 AED</div>
+                    <hr style="border: 0; border-top: 1px dashed #ccc; margin: 20px 0;">
+                    <div style="font-size: 14px; color: #666; margin-bottom: 10px;">ViewSonic Share</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--brand-red);">28%</div>
+                    <hr style="border: 0; border-top: 2px solid #333; margin: 20px 0;">
+                    <div style="font-size: 16px; font-weight: 800; text-transform: uppercase;">Final Target (SOM)</div>
+                    <div style="font-size: 36px; font-weight: 800; color: var(--brand-red);">16.36M AED</div>
+                </div>
+                <div class="card"><canvas id="funnelChart" height="250"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Strategy -->
+        <div id="slide5" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Distribution Strategy</h1>
+                <p class="page-sub">Why <strong>Selective Hybrid</strong> is the only viable path.</p>
+            </div>
+            <div class="grid-3">
+                <div class="strategy-card rejected">
+                    <h3 style="color: #d32f2f;">Intensive <i class="fa-solid fa-xmark"></i></h3>
+                    <p style="font-size: 12px; font-weight: 700; color: #555;">RETAIL / MASS MARKET</p>
+                    <p style="font-size: 13px; color: #666;"><strong>Why Rejected?</strong><br>Complex product. Selling in Carrefour destroys brand premium and lacks technical installation support.</p>
+                </div>
+                <div class="strategy-card rejected">
+                    <h3 style="color: #e65100;">Exclusive <i class="fa-solid fa-xmark"></i></h3>
+                    <p style="font-size: 12px; font-weight: 700; color: #555;">SINGLE PARTNER</p>
+                    <p style="font-size: 13px; color: #666;"><strong>Why Rejected?</strong><br>Market is fragmented. A partner strong in Education usually lacks access to Corporate HQs. Limits reach.</p>
+                </div>
+                <div class="strategy-card selected">
+                    <h3 style="color: #2e7d32;">Selective Hybrid <i class="fa-solid fa-check"></i></h3>
+                    <p style="font-size: 12px; font-weight: 700; color: #555;">SPECIALIZED EXPERTS</p>
+                    <p style="font-size: 13px; color: #333;"><strong>Why Selected?</strong><br>
+                    1. <strong>Direct:</strong> For Top 50 Accounts/Govt (Protect Margin).<br>
+                    2. <strong>Indirect:</strong> Best-in-class partners per vertical (Ed-Tech vs AV Pros).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Partner Map -->
+        <div id="slide6" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Partner Execution Map</h1>
+                <p class="page-sub">The Value Chain: Real-World UAE Partners.</p>
+            </div>
+            <div class="card">
+                <div style="display: grid; grid-template-columns: 80px 1fr 1fr 1fr; padding-bottom: 10px; font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase;">
+                    <div>Vertical</div><div>Tier 1 Distributor</div><div>Tier 2 System Integrator</div><div>End User</div>
+                </div>
+                
+                <div class="flow-row" style="border-left-color: var(--accent-edu);">
+                    <div class="flow-step"><span class="flow-label" style="color:var(--accent-edu);">EDU</span></div>
+                    <div class="flow-step"><span class="flow-val">Redington Gulf</span><span class="partner-tag">Logistics</span></div>
+                    <div class="flow-step"><span class="flow-val">Almoe / Cubit</span><span class="partner-tag">Tender Access</span></div>
+                    <div class="flow-step"><span class="flow-val">Universities</span></div>
+                </div>
+
+                <div class="flow-row" style="border-left-color: var(--accent-corp);">
+                    <div class="flow-step"><span class="flow-label" style="color:var(--accent-corp);">CORP</span></div>
+                    <div class="flow-step"><span class="flow-val">Ingram Micro</span><span class="partner-tag">Credit</span></div>
+                    <div class="flow-step"><span class="flow-val">Alpha Data / Emitac</span><span class="partner-tag">IT Solution</span></div>
+                    <div class="flow-step"><span class="flow-val">Corporate HQs</span></div>
+                </div>
+
+                <div class="flow-row" style="border-left-color: var(--accent-hosp);">
+                    <div class="flow-step"><span class="flow-label" style="color:var(--accent-hosp);">HOSP</span></div>
+                    <div class="flow-step"><span class="flow-val">Logicom</span><span class="partner-tag">Project Support</span></div>
+                    <div class="flow-step"><span class="flow-val">Bond / Integra</span><span class="partner-tag">AV Fit-out</span></div>
+                    <div class="flow-step"><span class="flow-val">Hotel Groups</span></div>
+                </div>
+
+                <div class="flow-row" style="border-left-color: var(--accent-govt);">
+                    <div class="flow-step"><span class="flow-label" style="color:var(--accent-govt);">GOVT</span></div>
+                    <div class="flow-step"><span class="flow-val">Direct Sales</span><span class="partner-tag">Key Account</span></div>
+                    <div class="flow-step"><span class="flow-val">Internal Team</span><span class="partner-tag">Consulting</span></div>
+                    <div class="flow-step"><span class="flow-val">Government</span></div>
+                </div>
+
+                <div class="flow-row" style="border-left-color: var(--accent-mixed);">
+                    <div class="flow-step"><span class="flow-label" style="color:var(--accent-mixed);">MIXED</span></div>
+                    <div class="flow-step"><span class="flow-val">Ingram Micro</span><span class="partner-tag">Wide Reach</span></div>
+                    <div class="flow-step"><span class="flow-val">Prestige AV</span><span class="partner-tag">Installation</span></div>
+                    <div class="flow-step"><span class="flow-val">Developers</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Assumptions -->
+        <div id="slide7" class="view-section">
+            <div class="page-header"><h1 class="page-title">Strategic Risks</h1></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Assumptions</h3>
+                    <p style="font-size: 13px; color: #555; margin-top: 10px;">
+                        <strong>1. Pricing:</strong> Education will demand ~10% volume discount.<br>
+                        <strong>2. Conversion:</strong> Projects >60% complete have 90% buying probability.<br>
+                        <strong>3. On-Hold:</strong> 50% of On-Hold projects will resume within Q1-Q2.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>Risks & Mitigation</h3>
+                    <p style="font-size: 13px; color: #555; margin-top: 10px;">
+                        <strong>Risk:</strong> BenQ Price War.<br>
+                        <strong>Mitigation:</strong> Focus on TCO (Total Cost of Ownership) & Warranty.<br><br>
+                        <strong>Risk:</strong> Construction Delays.<br>
+                        <strong>Mitigation:</strong> Balance portfolio with stable Govt projects.
+                    </p>
                 </div>
             </div>
         </div>
@@ -582,172 +477,56 @@
 </div>
 
 <script>
-    // --- NAVIGATION LOGIC ---
-    function switchView(viewId, navElement) {
-        // 1. Hide all views
-        document.querySelectorAll('.view-section').forEach(el => {
-            el.classList.remove('active-view');
-        });
-        
-        // 2. Show target view
+    function enterDashboard() {
+        document.getElementById('landing-page').style.display = 'none';
+        document.getElementById('dashboard-ui').style.display = 'flex';
+        // Trigger resize to fix chart rendering
+        window.dispatchEvent(new Event('resize'));
+    }
+
+    function switchView(viewId, navEl) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
         document.getElementById(viewId).classList.add('active-view');
-
-        // 3. Update Nav UI
-        document.querySelectorAll('.nav-item').forEach(el => {
-            el.classList.remove('active');
-        });
-        navElement.classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        navEl.classList.add('active');
     }
 
-    // --- CONFIGURATION ---
-    const ASP = 10000;
-    const SOM_SHARE = 0.28;
-
-    const sectors = [
-        { name: "Commercial", units: 2, defaultTam: 45, defaultSam: 12 },
-        { name: "Hospitality", units: 5, defaultTam: 32, defaultSam: 15 },
-        { name: "Healthcare", units: 5, defaultTam: 12, defaultSam: 5 },
-        { name: "Education", units: 10, defaultTam: 18, defaultSam: 11 },
-        { name: "Mixed-Use", units: 3, defaultTam: 55, defaultSam: 13 }
-    ];
-
-    // --- DOM ELEMENTS ---
-    const tbody = document.getElementById('input-body');
-    const dispTamVal = document.getElementById('disp-tam-val');
-    const dispTamUnits = document.getElementById('disp-tam-units');
-    const dispSamVal = document.getElementById('disp-sam-val');
-    const dispSamUnits = document.getElementById('disp-sam-units');
-    const dispSomVal = document.getElementById('disp-som-val');
-    const dispSomUnits = document.getElementById('disp-som-units');
-
-    // --- INITIALIZE TABLE ---
-    function renderTable() {
-        sectors.forEach((sector, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><span style="font-weight: 600; color: #fff;">${sector.name}</span></td>
-                <td><span class="unit-badge">${sector.units} Units</span></td>
-                <td>
-                    <input type="number" id="tam-input-${index}" value="${sector.defaultTam}" oninput="recalc()">
-                </td>
-                <td>
-                    <input type="number" id="sam-input-${index}" value="${sector.defaultSam}" oninput="recalc()" style="border-color: #555; background: #222;">
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // --- CALCULATION LOGIC ---
-    function recalc() {
-        let totalTamUnits = 0;
-        let totalSamUnits = 0;
-
-        sectors.forEach((sector, index) => {
-            const tamCount = parseInt(document.getElementById(`tam-input-${index}`).value) || 0;
-            const samCount = parseInt(document.getElementById(`sam-input-${index}`).value) || 0;
-
-            totalTamUnits += tamCount * sector.units;
-            totalSamUnits += samCount * sector.units;
-        });
-
-        const tamValue = totalTamUnits * ASP;
-        const samValue = totalSamUnits * ASP;
-        
-        const somUnits = Math.round(totalSamUnits * SOM_SHARE);
-        const somValue = somUnits * ASP;
-
-        // Update Text
-        dispTamVal.innerText = formatMoney(tamValue);
-        dispTamUnits.innerText = totalTamUnits.toLocaleString() + " Units";
-
-        dispSamVal.innerText = formatMoney(samValue);
-        dispSamUnits.innerText = totalSamUnits.toLocaleString() + " Units";
-
-        dispSomVal.innerText = formatMoney(somValue);
-        dispSomUnits.innerText = somUnits.toLocaleString() + " Units (28%)";
-
-        // Update Chart
-        updateCharts(tamValue, samValue, somValue);
-    }
-
-    function formatMoney(amount) {
-        if (amount >= 1000000) {
-            return (amount / 1000000).toFixed(2) + "M AED";
-        }
-        return (amount / 1000).toFixed(0) + "k AED";
-    }
-
-    // --- CHARTS ---
-    let marketChartInstance = null;
-    let shareChartInstance = null;
-
-    function initCharts() {
-        // Bar Chart
-        const ctx = document.getElementById('marketChart').getContext('2d');
-        marketChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['TAM (Total)', 'SAM (Serviceable)', 'SOM (Obtainable)'],
-                datasets: [{
-                    label: 'Market Value (AED)',
-                    data: [0, 0, 0],
-                    backgroundColor: ['#333', '#b91d2d', '#e0e0e0'],
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: '#333' },
-                        ticks: { color: '#aaa' } 
-                    },
-                    x: { 
-                        grid: { display: false },
-                        ticks: { color: '#fff', font: { size: 12 } } 
-                    }
-                }
-            }
-        });
-
-        // Pie Chart
-        const ctxPie = document.getElementById('shareChart').getContext('2d');
-        shareChartInstance = new Chart(ctxPie, {
+    window.onload = function() {
+        // TAM CHART
+        const ctx = document.getElementById('tamChart').getContext('2d');
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['ViewSonic (28%)', 'BenQ (35%)', 'Spektron (15%)', 'Others (22%)'],
+                labels: ['Education', 'Commercial', 'Hospitality', 'Mixed-Use', 'Health'],
                 datasets: [{
-                    data: [28, 35, 15, 22],
-                    backgroundColor: ['#b91d2d', '#333', '#555', '#777'],
+                    data: [20.88, 19.14, 23.25, 22.17, 5.93],
+                    backgroundColor: ['#2e7d32', '#e65100', '#1565c0', '#c2185b', '#6a1b9a'],
                     borderWidth: 0
                 }]
             },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+
+        // FUNNEL CHART
+        const ctxFunnel = document.getElementById('funnelChart').getContext('2d');
+        new Chart(ctxFunnel, {
+            type: 'bar',
+            data: {
+                labels: ['TAM', 'SAM', 'SOM'],
+                datasets: [{
+                    data: [91370000, 58440000, 16360000],
+                    backgroundColor: ['#e0e0e0', '#bdbdbd', '#b91d2d'],
+                    borderRadius: 5
+                }]
+            },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { position: 'right', labels: { color: '#aaa', boxWidth: 12 } } 
-                }
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { display: false }, y: { grid: { display: false } } }
             }
         });
-    }
-
-    function updateCharts(tam, sam, som) {
-        if (marketChartInstance) {
-            marketChartInstance.data.datasets[0].data = [tam, sam, som];
-            marketChartInstance.update();
-        }
-    }
-
-    // --- RUN ---
-    renderTable();
-    initCharts();
-    recalc(); // Initial calc
-
+    };
 </script>
 
 </body>
