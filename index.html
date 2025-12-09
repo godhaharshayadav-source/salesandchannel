@@ -50,6 +50,7 @@
                 <button onclick="switchTab('strategy')" id="btn-strategy" class="nav-btn px-4 py-2 text-xs font-bold uppercase rounded-md transition-all text-gray-500 hover:text-red-700 hover:bg-white flex-1 md:flex-none text-center">Strategy</button>
                 <button onclick="switchTab('partners')" id="btn-partners" class="nav-btn px-4 py-2 text-xs font-bold uppercase rounded-md transition-all text-gray-500 hover:text-red-700 hover:bg-white flex-1 md:flex-none text-center">Partners</button>
                 <button onclick="switchTab('simulation')" id="btn-simulation" class="nav-btn px-4 py-2 text-xs font-bold uppercase rounded-md transition-all text-gray-500 hover:text-red-700 hover:bg-white flex-1 md:flex-none text-center">Simulation</button>
+                <button onclick="switchTab('expansion')" id="btn-expansion" class="nav-btn px-4 py-2 text-xs font-bold uppercase rounded-md transition-all text-gray-500 hover:text-red-700 hover:bg-white flex-1 md:flex-none text-center">Expansion</button>
             </nav>
         </div>
     </header>
@@ -278,6 +279,50 @@
             </div>
         </div>
 
+        <!-- TAB 5: EXPANSION -->
+        <div id="expansion" class="tab-content space-y-6">
+            <div class="bg-gradient-to-r from-blue-900 to-blue-700 text-white p-8 rounded-xl shadow-lg flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-black mb-2">REGIONAL EXPANSION MATRIX</h2>
+                    <p class="opacity-90 text-sm">Strategic Roadmap: Beyond UAE (GCC Growth Plan).</p>
+                </div>
+                <i data-lucide="plane" class="hidden md:block w-12 h-12 opacity-50"></i>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Scatter Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-sm font-bold mb-4 text-gray-800 flex items-center gap-2">
+                        <i data-lucide="land-plot" class="text-blue-700 w-4 h-4"></i> GCC MARKET ATTRACTIVENESS
+                    </h3>
+                    <div class="h-80 relative">
+                        <canvas id="expansionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Launchpad -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold mb-4 text-gray-800 flex items-center gap-2">
+                            <i data-lucide="rocket" class="text-blue-700 w-4 h-4"></i> EXPANSION LAUNCHPAD
+                        </h3>
+                        <div id="country-list" class="space-y-3">
+                            <!-- Country items injected by JS -->
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-gray-100">
+                        <div class="flex justify-between items-end">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Regional TAM Potential</span>
+                            <span id="region-tam" class="text-3xl font-black text-blue-900">AED 91M</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2 mt-2">
+                            <div id="tam-progress" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 20%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- JAVASCRIPT LOGIC -->
@@ -304,10 +349,20 @@
             'logistics': { name: "Ingram Micro", role: "Distributor", desc: "Regional logistics powerhouse. Provides credit lines and warehousing.", icon: "truck", color: "text-red-600" }
         };
 
+        const expansionData = [
+            { id: 'ksa', name: 'Saudi Arabia', x: 40, y: 250, strategy: 'Direct Subsidiary', status: 'Pending', tam: 250 },
+            { id: 'uae', name: 'UAE (Base)', x: 90, y: 91, strategy: 'Hybrid Model', status: 'Active', tam: 91 },
+            { id: 'qatar', name: 'Qatar', x: 70, y: 60, strategy: 'Exclusive Partner', status: 'Pending', tam: 60 },
+            { id: 'kuwait', name: 'Kuwait', x: 50, y: 45, strategy: 'Distributor Led', status: 'Pending', tam: 45 },
+            { id: 'oman', name: 'Oman', x: 80, y: 30, strategy: 'Distributor Led', status: 'Pending', tam: 30 }
+        ];
+        let activeCountries = ['uae'];
+
         // --- CHART INSTANCES ---
         let funnelChartInst = null;
         let sectorChartInst = null;
-        let strategyChartInst = null;
+        let expansionChartInst = null;
+        let strategyChartInst = null; // Area chart inside strategy detail
 
         // --- TAB SWITCHING ---
         function switchTab(tabId) {
@@ -327,6 +382,7 @@
             if (tabId === 'market' && !funnelChartInst) initMarketCharts();
             if (tabId === 'strategy') renderStrategyDetail('hybrid');
             if (tabId === 'partners') showPartner('govt');
+            if (tabId === 'expansion' && !expansionChartInst) initExpansionCharts();
         }
 
         // --- MARKET CHARTS ---
@@ -520,8 +576,86 @@
         sliderResump.addEventListener('input', updateSimulation);
         sliderDiscount.addEventListener('input', updateSimulation);
 
+        // --- EXPANSION LOGIC ---
+        function initExpansionCharts() {
+            const ctxExp = document.getElementById('expansionChart').getContext('2d');
+            expansionChartInst = new Chart(ctxExp, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Countries',
+                        data: expansionData.map(c => ({x: c.x, y: c.y, name: c.name})),
+                        backgroundColor: (ctx) => {
+                            const val = ctx.raw?.y;
+                            return val > 100 ? '#22c55e' : val > 90 ? '#cf102d' : val > 50 ? '#3b82f6' : '#eab308';
+                        },
+                        pointRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Ease of Entry (%)' }, min: 0, max: 100 },
+                        y: { title: { display: true, text: 'TAM (AED M)' }, min: 0, max: 300 }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.raw.name}: ${ctx.raw.y}M TAM`
+                            }
+                        },
+                        legend: { display: false }
+                    }
+                }
+            });
+            renderCountryList();
+        }
+
+        function renderCountryList() {
+            const list = document.getElementById('country-list');
+            list.innerHTML = expansionData.map(c => {
+                const isActive = activeCountries.includes(c.id);
+                return `
+                    <div class="flex justify-between items-center p-3 rounded border-l-4 transition-all ${isActive ? 'bg-gray-50 border-green-500' : 'bg-white border-gray-200 opacity-60'}">
+                        <div>
+                            <div class="font-bold text-sm text-gray-900">${c.name}</div>
+                            <div class="text-[10px] text-gray-500">${c.strategy}</div>
+                        </div>
+                        <div class="text-right flex items-center gap-3">
+                            <div class="text-xs font-bold text-gray-700">${c.tam}M</div>
+                            <button onclick="toggleCountry('${c.id}')" class="p-1 rounded-full ${isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500'}">
+                                <i data-lucide="power" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+            updateRegionalTAM();
+        }
+
+        function toggleCountry(id) {
+            if (id === 'uae') return;
+            if (activeCountries.includes(id)) {
+                activeCountries = activeCountries.filter(c => c !== id);
+            } else {
+                activeCountries.push(id);
+            }
+            renderCountryList();
+        }
+
+        function updateRegionalTAM() {
+            const total = activeCountries.reduce((acc, id) => acc + expansionData.find(c => c.id === id).tam, 0);
+            document.getElementById('region-tam').innerText = `AED ${total}M`;
+            document.getElementById('tam-progress').style.width = `${(total / 476) * 100}%`;
+        }
+
         // Init
-        initMarketCharts();
+        // Use a timeout to ensure canvas elements are ready, though standard execution flow handles this well usually
+        setTimeout(() => {
+            initMarketCharts();
+        }, 100);
     </script>
 </body>
 </html>
